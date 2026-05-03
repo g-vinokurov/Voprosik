@@ -17,34 +17,6 @@ with BuildPart() as part:
         height = 60
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
-
-    x = 0
-    y = 30
-    z = -4
-    with BuildPart(Location((x, y, z))):
-        radius = 6
-        height = 60
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Cylinder(radius, height, align=align, rotation=(0, 90, 0))
-    
-    x = 0
-    y = 30
-    z = 4
-    with BuildPart(Location((x, y, z))):
-        radius = 6
-        height = 60
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Cylinder(radius, height, align=align, rotation=(0, 90, 0))
-    
-    x = 0
-    y = 33
-    z = 0
-    with BuildPart(Location((x, y, z))):
-        length = 60
-        width  = 6
-        height = 8
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
     
     # Вырез внутренности
     x = 0
@@ -57,6 +29,56 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
+    x = -27
+    y = 27
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 6
+        width  = 6
+        height = 20
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    x = 27
+    y = 27
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 6
+        width  = 6
+        height = 20
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    x = 0
+    y = 15
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 42
+        width  = 22
+        height = 20
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    # Скругления у сустава
+    x = 24
+    y = 24
+    z = 0
+    with BuildPart(Location((x, y, z))):
+        radius = 6
+        height = 20
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Cylinder(radius, height, align=align)
+    
+    x = -24
+    y = 24
+    z = 0
+    with BuildPart(Location((x, y, z))):
+        radius = 6
+        height = 20
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Cylinder(radius, height, align=align)
+    
+    # Ещё раз вырез
     x = 0
     y = 15
     z = 0
