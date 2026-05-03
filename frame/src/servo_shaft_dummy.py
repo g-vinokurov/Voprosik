@@ -5,12 +5,12 @@ from ocp_vscode import show
 with BuildPart() as part:
     length = 20
     width  = 20
-    height = 2
+    height = 1.2
     Box(length, width, height)
     
     x = 0
     y = 0
-    z = 4
+    z = 3.6
     with BuildPart(Location((x, y, z))):
         radius = 3
         height = 6
