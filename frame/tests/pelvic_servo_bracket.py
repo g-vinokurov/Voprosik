@@ -17,6 +17,34 @@ with BuildPart() as part:
         height = 60
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
+
+    x = 0
+    y = 30
+    z = -4
+    with BuildPart(Location((x, y, z))):
+        radius = 6
+        height = 60
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Cylinder(radius, height, align=align, rotation=(0, 90, 0))
+    
+    x = 0
+    y = 30
+    z = 4
+    with BuildPart(Location((x, y, z))):
+        radius = 6
+        height = 60
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Cylinder(radius, height, align=align, rotation=(0, 90, 0))
+    
+    x = 0
+    y = 33
+    z = 0
+    with BuildPart(Location((x, y, z))):
+        length = 60
+        width  = 6
+        height = 8
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
     
     # Вырез внутренности
     x = 0
@@ -33,8 +61,8 @@ with BuildPart() as part:
     y = 15
     z = 0
     with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
-        length = 40
-        width  = 20
+        length = 42
+        width  = 22
         height = 20
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -66,9 +94,9 @@ with BuildPart() as part:
     # Отверстия под крепежные винты 3 mm
     points = [
         (24, 20, 0),
-        (24, 15, 0),
+        (24, 10, 0),
         (-24, 20, 0),
-        (-24, 15, 0),
+        (-24, 10, 0),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
@@ -80,7 +108,7 @@ with BuildPart() as part:
     roundable_edges = part.edges().filter_by(Axis.Z)
     fillet(roundable_edges, radius=1)
 
-filename = f'{__file__.rstrip('.py')}'
+filename = f'{__file__[:-3]}'
 
 show(part.part, names=[filename])
 export_stl(part.part, f'{filename}.stl')

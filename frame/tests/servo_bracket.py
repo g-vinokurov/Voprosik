@@ -35,7 +35,7 @@ with BuildPart() as part:
     roundable_edges = part.edges().filter_by(Axis.Z)
     fillet(roundable_edges, radius=9)
 
-filename = f'{__file__.rstrip('.py')}'
+filename = f'{__file__[:-3]}'
 
 show(part.part, names=[filename])
 export_stl(part.part, f'{filename}.stl')
