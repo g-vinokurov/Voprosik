@@ -1,3 +1,4 @@
+
 # Код позаимствован из проекта робота T-1337
 # Форма АКБ вписывается в отсек для АКБ того проекта
 
@@ -6,8 +7,7 @@ from ocp_vscode import show
 
 unit_size           = 8.0 # lego unit size
 unit_height         = 9.6 # lego brick height
-hole_inner_diameter = 4.8 # lego hole inner diameter
-hole_outer_diameter = 6.2 # lego hole outer diameter
+
 
 with BuildPart() as part:
     length = unit_size * 20
@@ -76,7 +76,7 @@ with BuildPart() as part:
     roundable_edges = part.edges().filter_by(Axis.Z)
     fillet(roundable_edges, radius=2)
 
-filename = f'{__file__.rstrip('.py')}'
+filename = f'{__file__[:-3]}'
 
 show(part.part, names=[filename])
 export_stl(part.part, f'{filename}.stl')
