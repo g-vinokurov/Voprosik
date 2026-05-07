@@ -83,41 +83,41 @@ with BuildPart() as part:
 
     # Вырезы под сервоприводы
     x_pos = unit_size * 10.5
-    y_pos = unit_size * 6
+    y_pos = unit_size * 7 - 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = 42
-        width  = unit_size * 2
+        width  = 22
         height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * -10.5
-    y_pos = unit_size * 6
+    y_pos = unit_size * 7 - 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = 42
-        width  = unit_size * 2
+        width  = 22
         height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * 10.5
-    y_pos = unit_size * -6
+    y_pos = unit_size * -7 + 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = 42
-        width  = unit_size * 2
+        width  = 22
         height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * -10.5
-    y_pos = unit_size * -6
+    y_pos = unit_size * -7 + 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = 42
-        width  = unit_size * 2
+        width  = 22
         height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -128,7 +128,7 @@ with BuildPart() as part:
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = unit_size * 3
-        width  = unit_size * 8
+        width  = unit_size * 6
         height = unit_height
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -138,7 +138,7 @@ with BuildPart() as part:
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = unit_size * 3
-        width  = unit_size * 8
+        width  = unit_size * 6
         height = unit_height
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -223,22 +223,22 @@ with BuildPart() as part:
         (unit_size * -7,   unit_size * 3.5,  0),
         (unit_size * -7,   unit_size * -3.5, 0),
         # Servo
-        (unit_size * -10.5 + 24, unit_size * 6 + 4, 0),
-        (unit_size * -10.5 + 24, unit_size * 6 - 4, 0),
-        (unit_size * -10.5 - 24, unit_size * 6 + 4, 0),
-        (unit_size * -10.5 - 24, unit_size * 6 - 4, 0),
-        (unit_size * 10.5 + 24, unit_size * 6 + 4, 0),
-        (unit_size * 10.5 + 24, unit_size * 6 - 4, 0),
-        (unit_size * 10.5 - 24, unit_size * 6 + 4, 0),
-        (unit_size * 10.5 - 24, unit_size * 6 - 4, 0),
-        (unit_size * -10.5 + 24, unit_size * -6 + 4, 0),
-        (unit_size * -10.5 + 24, unit_size * -6 - 4, 0),
-        (unit_size * -10.5 - 24, unit_size * -6 + 4, 0),
-        (unit_size * -10.5 - 24, unit_size * -6 - 4, 0),
-        (unit_size * 10.5 + 24, unit_size * -6 + 4, 0),
-        (unit_size * 10.5 + 24, unit_size * -6 - 4, 0),
-        (unit_size * 10.5 - 24, unit_size * -6 + 4, 0),
-        (unit_size * 10.5 - 24, unit_size * -6 - 4, 0),
+        (unit_size * -10.5 + 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * -10.5 + 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * -10.5 - 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * -10.5 - 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * 10.5 + 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * 10.5 + 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * 10.5 - 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * 10.5 - 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * -10.5 + 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * -10.5 + 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * -10.5 - 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * -10.5 - 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * 10.5 + 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * 10.5 + 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * 10.5 - 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * 10.5 - 24, unit_size * -7 + 11 - 5, 0),
         # DC-DC
         # 53, 39
         (-15, 10, 0),
