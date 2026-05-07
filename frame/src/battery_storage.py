@@ -13,7 +13,7 @@ with BuildPart() as part:
     # База
     length = unit_size * 20
     width  = unit_size * 8
-    height = unit_height
+    height = unit_height * 2
     Box(length, width, height)
 
     # Отсек для АКБ
@@ -21,90 +21,90 @@ with BuildPart() as part:
     y_pos = 0
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 18
-        width  = unit_size * 6
-        height = unit_height
+        length = unit_size * 18 - 4
+        width  = unit_size * 6 - 4
+        height = unit_height * 2
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     # Держатели аккумулятора
-    x_pos = unit_size * -9.5
+    x_pos = unit_size * -9.5 + 1
     y_pos = 0
-    z_pos = unit_height * 1.5
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
-        length = unit_size
+        length = unit_size + 2
         width  = unit_size * 2
-        height = unit_height * 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * 9.5
+    x_pos = unit_size * 9.5 - 1
     y_pos = 0
-    z_pos = unit_height * 1.5
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
-        length = unit_size
+        length = unit_size + 2
         width  = unit_size * 2
-        height = unit_height * 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * 7
-    y_pos = unit_size * 3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * 3.5 - 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * 7
-    y_pos = unit_size * -3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * -3.5 + 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * -7
-    y_pos = unit_size * 3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * 3.5 - 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = unit_size * -7
-    y_pos = unit_size * -3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * -3.5 + 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = 0
-    y_pos = unit_size * 3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * 3.5 - 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
     x_pos = 0
-    y_pos = unit_size * -3.5
-    z_pos = unit_height * 1.5
+    y_pos = unit_size * -3.5 + 1
+    z_pos = unit_height * 2.25
     with BuildPart(Location((x_pos, y_pos, z_pos))):
         length = unit_size * 2
-        width  = unit_size
-        height = unit_height * 2
+        width  = unit_size + 2
+        height = unit_height * 2.5
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
@@ -122,7 +122,7 @@ with BuildPart() as part:
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
             radius = 1.5
-            height = unit_height * 3
+            height = unit_height * 10
             align  = (Align.CENTER, Align.CENTER, Align.CENTER)
             Cylinder(radius, height, align=align)
 
