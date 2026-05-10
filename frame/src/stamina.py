@@ -11,13 +11,13 @@ unit_height         = 9.6 # lego brick height
 
 with BuildPart() as part:
     # База
-    length = unit_size * 30
+    length = unit_size * 26
     width  = unit_size * 14
     height = unit_height
     Box(length, width, height)
 
     # Крепления сервоприводов
-    x_pos = unit_size * 10.5
+    x_pos = unit_size * 8.5
     y_pos = unit_size * 5.5
     z_pos = unit_height * 1
     with BuildPart(Location((x_pos, y_pos, z_pos))):
@@ -27,7 +27,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * 10.5
+    x_pos = unit_size * 8.5
     y_pos = unit_size * -5.5
     z_pos = unit_height * 1
     with BuildPart(Location((x_pos, y_pos, z_pos))):
@@ -37,7 +37,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * -10.5
+    x_pos = unit_size * -8.5
     y_pos = unit_size * 5.5
     z_pos = unit_height * 1
     with BuildPart(Location((x_pos, y_pos, z_pos))):
@@ -47,7 +47,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * -10.5
+    x_pos = unit_size * -8.5
     y_pos = unit_size * -5.5
     z_pos = unit_height * 1
     with BuildPart(Location((x_pos, y_pos, z_pos))):
@@ -57,21 +57,27 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height, align=align)
     
-    # Стойки для понижаек
+    # Стойки для понижаек и Arduino Uno
     z_pos = unit_height
     points = [
-        (-15, 10, z_pos),
-        (-15, -10, z_pos),
-        (-15, 10 + 39, z_pos),
-        (-15, -10 - 39, z_pos),
-        (-15 + 53, 10, z_pos),
-        (-15 + 53, -10, z_pos),
-        (-15 + 53, 10 + 39, z_pos),
-        (-15 + 53, -10 - 39, z_pos),
-        (-87, 39/2, z_pos),
-        (-87, -39/2, z_pos),
-        (-87 + 53, 39/2, z_pos),
-        (-87 + 53, -39/2, z_pos),
+        # DC-DC
+        (-26.5, 10, z_pos),
+        (-26.5, -10, z_pos),
+        (-26.5, 10 + 39, z_pos),
+        (-26.5, -10 - 39, z_pos),
+        (-26.5 + 53, 10, z_pos),
+        (-26.5 + 53, -10, z_pos),
+        (-26.5 + 53, 10 + 39, z_pos),
+        (-26.5 + 53, -10 - 39, z_pos),
+        (-97, 39/2, z_pos),
+        (-97, -39/2, z_pos),
+        (-97 + 53, 39/2, z_pos),
+        (-97 + 53, -39/2, z_pos),
+        # Arduino Uno
+        (36, 22, z_pos),
+        (36, -6, z_pos),
+        (88, 27.5, z_pos),
+        (87, -20.9, z_pos),
     ]
     for point in points:
         with BuildPart(Location(point)):
@@ -82,7 +88,7 @@ with BuildPart() as part:
             Box(length, width, height, align=align)
 
     # Вырезы под сервоприводы
-    x_pos = unit_size * 10.5
+    x_pos = unit_size * 8.5
     y_pos = unit_size * 7 - 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
@@ -92,7 +98,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * -10.5
+    x_pos = unit_size * -8.5
     y_pos = unit_size * 7 - 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
@@ -102,7 +108,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * 10.5
+    x_pos = unit_size * 8.5
     y_pos = unit_size * -7 + 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
@@ -112,7 +118,7 @@ with BuildPart() as part:
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * -10.5
+    x_pos = unit_size * -8.5
     y_pos = unit_size * -7 + 11
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
@@ -121,95 +127,35 @@ with BuildPart() as part:
         height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
-        
-    # Вырезы    
-    x_pos = unit_size * 13.5
+    
+    # Вырезы
+    x_pos = 0
     y_pos = 0
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 3
+        length = unit_size * 5
         width  = unit_size * 6
-        height = unit_height
+        height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
     
-    x_pos = unit_size * -13.5
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 3
-        width  = unit_size * 6
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * 2.5
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 3
-        width  = unit_size * 11
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * 1
+    x_pos = unit_size * -6
     y_pos = 0
     z_pos = 0
     with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
         length = unit_size * 4
-        width  = unit_size * 5
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * -5.5
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 6
-        width  = unit_size * 3
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * -7
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 4
-        width  = unit_size * 6
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * 3.5
-    y_pos = unit_size * 4
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 4.5
-        width  = unit_size * 3
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * 3.5
-    y_pos = unit_size * -4
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 4.5
-        width  = unit_size * 3
-        height = unit_height
-        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
-        Box(length, width, height)
-    
-    x_pos = unit_size * 7.5
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 2.5
         width  = unit_size * 4
-        height = unit_height
+        height = unit_height * 3
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    x_pos = unit_size * 7
+    y_pos = 0
+    z_pos = 0
+    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
+        length = unit_size * 4
+        width  = unit_size * 4
+        height = unit_height * 3
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
 
@@ -222,42 +168,49 @@ with BuildPart() as part:
         (unit_size * 7,    unit_size * -3.5, 0),
         (unit_size * -7,   unit_size * 3.5,  0),
         (unit_size * -7,   unit_size * -3.5, 0),
+        (unit_size * -9.5, unit_size * 0,    0),
+        (unit_size * 9.5,  unit_size * 0,    0),
         # Servo
-        (unit_size * -10.5 + 24, unit_size * 7 - 11 + 5, 0),
-        (unit_size * -10.5 + 24, unit_size * 7 - 11 - 5, 0),
-        (unit_size * -10.5 - 24, unit_size * 7 - 11 + 5, 0),
-        (unit_size * -10.5 - 24, unit_size * 7 - 11 - 5, 0),
-        (unit_size * 10.5 + 24, unit_size * 7 - 11 + 5, 0),
-        (unit_size * 10.5 + 24, unit_size * 7 - 11 - 5, 0),
-        (unit_size * 10.5 - 24, unit_size * 7 - 11 + 5, 0),
-        (unit_size * 10.5 - 24, unit_size * 7 - 11 - 5, 0),
-        (unit_size * -10.5 + 24, unit_size * -7 + 11 + 5, 0),
-        (unit_size * -10.5 + 24, unit_size * -7 + 11 - 5, 0),
-        (unit_size * -10.5 - 24, unit_size * -7 + 11 + 5, 0),
-        (unit_size * -10.5 - 24, unit_size * -7 + 11 - 5, 0),
-        (unit_size * 10.5 + 24, unit_size * -7 + 11 + 5, 0),
-        (unit_size * 10.5 + 24, unit_size * -7 + 11 - 5, 0),
-        (unit_size * 10.5 - 24, unit_size * -7 + 11 + 5, 0),
-        (unit_size * 10.5 - 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * -8.5 + 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * -8.5 + 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * -8.5 - 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * -8.5 - 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * 8.5 + 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * 8.5 + 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * 8.5 - 24, unit_size * 7 - 11 + 5, 0),
+        (unit_size * 8.5 - 24, unit_size * 7 - 11 - 5, 0),
+        (unit_size * -8.5 + 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * -8.5 + 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * -8.5 - 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * -8.5 - 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * 8.5 + 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * 8.5 + 24, unit_size * -7 + 11 - 5, 0),
+        (unit_size * 8.5 - 24, unit_size * -7 + 11 + 5, 0),
+        (unit_size * 8.5 - 24, unit_size * -7 + 11 - 5, 0),
         # DC-DC
         # 53, 39
-        (-15, 10, 0),
-        (-15, -10, 0),
-        (-15, 10 + 39, 0),
-        (-15, -10 - 39, 0),
-        (-15 + 53, 10, 0),
-        (-15 + 53, -10, 0),
-        (-15 + 53, 10 + 39, 0),
-        (-15 + 53, -10 - 39, 0),
-        (-87, 39/2, 0),
-        (-87, -39/2, 0),
-        (-87 + 53, 39/2, 0),
-        (-87 + 53, -39/2, 0),
+        (-26.5, 10, 0),
+        (-26.5, -10, 0),
+        (-26.5, 10 + 39, 0),
+        (-26.5, -10 - 39, 0),
+        (-26.5 + 53, 10, 0),
+        (-26.5 + 53, -10, 0),
+        (-26.5 + 53, 10 + 39, 0),
+        (-26.5 + 53, -10 - 39, 0),
+        (-97, 39/2, 0),
+        (-97, -39/2, 0),
+        (-97 + 53, 39/2, 0),
+        (-97 + 53, -39/2, 0),
+        # Arduino Uno
+        (36, 22, 0),
+        (36, -6, 0),
+        (88, 27.5, 0),
+        (87, -20.9, 0),
         # Top
-        (unit_size * -6.5, unit_size * 4.5, 0),
-        (unit_size * -6.5, unit_size * -4.5, 0),
-        (unit_size * 6.5, unit_size * 4.5, 0),
-        (unit_size * 6.5, unit_size * -4.5, 0),
+        (unit_size * -4.5, unit_size * 6, 0),
+        (unit_size * -4.5, unit_size * -6, 0),
+        (unit_size * 4.5, unit_size * 6, 0),
+        (unit_size * 4.5, unit_size * -6, 0),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
@@ -276,6 +229,8 @@ with BuildPart() as part:
         (unit_size * 7,    unit_size * -3.5, z_pos),
         (unit_size * -7,   unit_size * 3.5,  z_pos),
         (unit_size * -7,   unit_size * -3.5, z_pos),
+        (unit_size * -9.5, unit_size * 0,    z_pos),
+        (unit_size * 9.5,  unit_size * 0,    z_pos),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
