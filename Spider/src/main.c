@@ -1,14 +1,39 @@
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
 #include "driver/i2c.h"
+
 #include "esp_log.h"
+#include "esp_wifi.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "nvs_flash.h"
+#include "esp_http_server.h"
+
+// =====================================================
+// WIFI
+// =====================================================
+
+#define WIFI_SSID      "SPIDER_ROBOT"
+#define WIFI_PASS      "12345678"
+#define MAX_STA_CONN   4
+
+// =====================================================
+// I2C
+// =====================================================
 
 #define I2C_MASTER_SCL_IO           5
 #define I2C_MASTER_SDA_IO           4
 #define I2C_MASTER_NUM              I2C_NUM_0
 #define I2C_MASTER_FREQ_HZ          100000
+
+// =====================================================
+// PCA9685
+// =====================================================
 
 #define PCA9685_ADDR                0x40
 
@@ -19,10 +44,43 @@
 #define SERVO_MIN                   102
 #define SERVO_MAX                   410
 
-static const char *TAG = "PCA9685";
+static const char *TAG = "SPIDER";
 
+// =====================================================
+// SERVOS
+// =====================================================
 
-// ====================== I2C ======================
+#define FORWARD_RIGHT_TIBIA 0
+#define FORWARD_RIGHT_FEMUR 4
+#define FORWARD_RIGHT_COXA 8
+
+#define BACKWARD_RIGHT_TIBIA 1
+#define BACKWARD_RIGHT_FEMUR 5
+#define BACKWARD_RIGHT_COXA 9
+
+#define BACKWARD_LEFT_TIBIA 2
+#define BACKWARD_LEFT_FEMUR 6
+#define BACKWARD_LEFT_COXA 10
+
+#define FORWARD_LEFT_TIBIA 3
+#define FORWARD_LEFT_FEMUR 7
+#define FORWARD_LEFT_COXA 11
+
+// =====================================================
+// MODES
+// =====================================================
+
+typedef enum {
+    MODE_IDLE,
+    MODE_MOVE,
+    MODE_PING
+} robot_mode_t;
+
+volatile robot_mode_t current_mode = MODE_IDLE;
+
+// =====================================================
+// I2C
+// =====================================================
 
 esp_err_t i2c_master_init(void)
 {
@@ -46,8 +104,9 @@ esp_err_t i2c_master_init(void)
     );
 }
 
-
-// ====================== PCA9685 ======================
+// =====================================================
+// PCA9685
+// =====================================================
 
 esp_err_t pca9685_write(uint8_t reg, uint8_t data)
 {
@@ -67,6 +126,7 @@ esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on, uint16_t off)
     uint8_t reg = LED0_ON_L + 4 * channel;
 
     uint8_t data[5];
+
     data[0] = reg;
     data[1] = on & 0xFF;
     data[2] = on >> 8;
@@ -84,16 +144,15 @@ esp_err_t pca9685_set_pwm(uint8_t channel, uint16_t on, uint16_t off)
 
 void pca9685_init()
 {
-    // sleep
     pca9685_write(MODE1, 0x10);
 
-    // Частота 50 Гц
     float freq = 50.0;
-    uint8_t prescale_val = (uint8_t)(round(25000000.0 / (4096.0 * freq)) - 1);
+
+    uint8_t prescale_val =
+        (uint8_t)(round(25000000.0 / (4096.0 * freq)) - 1);
 
     pca9685_write(PRESCALE, prescale_val);
 
-    // Wake up
     pca9685_write(MODE1, 0x20);
 
     vTaskDelay(pdMS_TO_TICKS(10));
@@ -102,13 +161,12 @@ void pca9685_init()
         pca9685_set_pwm(i, 0, 0);
     }
 
-    vTaskDelay(pdMS_TO_TICKS(100));
-
     ESP_LOGI(TAG, "PCA9685 initialized");
 }
 
-
-// ====================== Servo ======================
+// =====================================================
+// SERVO
+// =====================================================
 
 uint16_t angle_to_pwm(int angle)
 {
@@ -119,26 +177,20 @@ uint16_t angle_to_pwm(int angle)
            ((SERVO_MAX - SERVO_MIN) * angle) / 180;
 }
 
-void set_servo(uint8_t channel, int angle) {
+void set_servo(uint8_t channel, int angle)
+{
     uint16_t pwm = angle_to_pwm(angle);
+
     pca9685_set_pwm(channel, 0, pwm);
-    ESP_LOGI(TAG, "CH %d -> angle %d -> pwm %d", channel, angle, pwm);
+
+    ESP_LOGI(TAG,
+             "CH %d -> angle %d",
+             channel,
+             angle);
 }
 
-#define FORWARD_RIGHT_TIBIA 0
-#define FORWARD_RIGHT_FEMUR 4
-#define FORWARD_RIGHT_COXA 8
-#define BACKWARD_RIGHT_TIBIA 1
-#define BACKWARD_RIGHT_FEMUR 5
-#define BACKWARD_RIGHT_COXA 9
-#define BACKWARD_LEFT_TIBIA 2
-#define BACKWARD_LEFT_FEMUR 6
-#define BACKWARD_LEFT_COXA 10
-#define FORWARD_LEFT_TIBIA 3
-#define FORWARD_LEFT_FEMUR 7
-#define FORWARD_LEFT_COXA 11
-
-void smooth_servo(uint8_t ch, int from, int to, int step_delay) {
+void smooth_servo(uint8_t ch, int from, int to, int step_delay)
+{
     if (from < to) {
         for (int a = from; a <= to; a += 2) {
             set_servo(ch, a);
@@ -152,19 +204,12 @@ void smooth_servo(uint8_t ch, int from, int to, int step_delay) {
     }
 }
 
-// ====================== Main ======================
+// =====================================================
+// INIT POSITION
+// =====================================================
 
-void app_main(void)
+void robot_init_position()
 {
-    ESP_ERROR_CHECK(i2c_master_init());
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    pca9685_init();
-
-    vTaskDelay(pdMS_TO_TICKS(100));
-
-    // Начальные позиции
-
     set_servo(FORWARD_RIGHT_COXA, 105);
     set_servo(BACKWARD_RIGHT_COXA, 60);
     set_servo(BACKWARD_LEFT_COXA, 105);
@@ -180,61 +225,220 @@ void app_main(void)
     set_servo(BACKWARD_LEFT_TIBIA, 90);
     set_servo(FORWARD_LEFT_TIBIA, 90);
 
-    vTaskDelay(pdMS_TO_TICKS(1500));
+    ESP_LOGI(TAG, "Robot init position");
+}
+
+// =====================================================
+// MOVE STEP
+// =====================================================
+
+void robot_move_cycle()
+{
+    smooth_servo(FORWARD_RIGHT_TIBIA, 90, 35, 10);
+    smooth_servo(FORWARD_RIGHT_COXA, 105, 145, 10);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_LEFT_TIBIA, 90, 145, 10);
+    smooth_servo(FORWARD_LEFT_COXA, 60, 20, 10);
+    vTaskDelay(pdMS_TO_TICKS(200));
+    
+
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 90, 35, 12);
+    smooth_servo(BACKWARD_RIGHT_COXA, 60, 130, 12);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 35, 90, 12);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_LEFT_TIBIA, 90, 145, 12);
+    smooth_servo(BACKWARD_LEFT_COXA, 105, 35, 12);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_LEFT_TIBIA, 145, 90, 12);
+    vTaskDelay(pdMS_TO_TICKS(200));
+
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 165, 10);
+    smooth_servo(FORWARD_LEFT_TIBIA, 145, 90, 10);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_LEFT_FEMUR, 165, 90, 10);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 15, 10);
+    smooth_servo(FORWARD_RIGHT_TIBIA, 35, 90, 10);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_RIGHT_FEMUR, 15, 90, 10);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_COXA, 145, 105, 12);
+    smooth_servo(FORWARD_LEFT_COXA, 20, 60, 12);
+    smooth_servo(BACKWARD_LEFT_COXA, 35, 105, 12);
+    smooth_servo(BACKWARD_RIGHT_COXA, 130, 60, 12);
+}
+
+// =====================================================
+// PING ANIMATION
+// =====================================================
+
+void robot_ping_cycle()
+{
+    set_servo(FORWARD_RIGHT_TIBIA, 90);
+    set_servo(BACKWARD_RIGHT_TIBIA, 20);
+    set_servo(BACKWARD_LEFT_TIBIA, 90);
+    set_servo(FORWARD_LEFT_TIBIA, 20);
+
+    vTaskDelay(pdMS_TO_TICKS(250));
+
+    set_servo(FORWARD_RIGHT_TIBIA, 20);
+    set_servo(BACKWARD_RIGHT_TIBIA, 90);
+    set_servo(BACKWARD_LEFT_TIBIA, 20);
+    set_servo(FORWARD_LEFT_TIBIA, 90);
+
+    vTaskDelay(pdMS_TO_TICKS(250));
+}
+
+// =====================================================
+// HTTP
+// =====================================================
+
+static esp_err_t ping_handler(httpd_req_t *req)
+{
+    current_mode = MODE_PING;
+    httpd_resp_send(req, "PING MODE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t move_handler(httpd_req_t *req)
+{
+    current_mode = MODE_MOVE;
+    httpd_resp_send(req, "MOVE MODE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t init_handler(httpd_req_t *req)
+{
+    current_mode = MODE_IDLE;
+    httpd_resp_send(req, "INIT DONE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+httpd_handle_t start_webserver(void)
+{
+    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+    httpd_handle_t server = NULL;
+    if (httpd_start(&server, &config) == ESP_OK)
+    {
+        httpd_uri_t ping_uri = {
+            .uri = "/ping",
+            .method = HTTP_GET,
+            .handler = ping_handler,
+            .user_ctx = NULL
+        };
+
+        httpd_uri_t move_uri = {
+            .uri = "/move",
+            .method = HTTP_GET,
+            .handler = move_handler,
+            .user_ctx = NULL
+        };
+
+        httpd_uri_t init_uri = {
+            .uri = "/init",
+            .method = HTTP_GET,
+            .handler = init_handler,
+            .user_ctx = NULL
+        };
+
+        httpd_register_uri_handler(server, &ping_uri);
+        httpd_register_uri_handler(server, &move_uri);
+        httpd_register_uri_handler(server, &init_uri);
+
+        ESP_LOGI(TAG, "HTTP server started");
+    }
+
+    return server;
+}
+
+// =====================================================
+// WIFI AP
+// =====================================================
+
+void wifi_init_softap(void)
+{
+    ESP_ERROR_CHECK(esp_netif_init());
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    esp_netif_create_default_wifi_ap();
+    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    wifi_config_t wifi_config = {
+        .ap = {
+            .ssid = WIFI_SSID,
+            .password = WIFI_PASS,
+            .ssid_len = strlen(WIFI_SSID),
+            .channel = 1,
+            .max_connection = MAX_STA_CONN,
+            .authmode = WIFI_AUTH_WPA_WPA2_PSK,
+        },
+    };
+    ESP_ERROR_CHECK(
+        esp_wifi_set_mode(WIFI_MODE_AP)
+    );
+    ESP_ERROR_CHECK(
+        esp_wifi_set_config(WIFI_IF_AP, &wifi_config)
+    );
+    ESP_ERROR_CHECK(esp_wifi_start());
+    ESP_LOGI(TAG,
+             "WiFi AP started: %s",
+             WIFI_SSID);
+}
+
+// =====================================================
+// MAIN
+// =====================================================
+
+void app_main(void)
+{
+    esp_err_t ret = nvs_flash_init();
+
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES ||
+        ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+    {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+
+    ESP_ERROR_CHECK(ret);
+
+    ESP_ERROR_CHECK(i2c_master_init());
+
+    pca9685_init();
+
+    robot_init_position();
+
+    wifi_init_softap();
+
+    start_webserver();
+
+    ESP_LOGI(TAG, "READY");
+    ESP_LOGI(TAG, "Open:");
+    ESP_LOGI(TAG, "http://192.168.4.1/move");
+    ESP_LOGI(TAG, "http://192.168.4.1/init");
+    ESP_LOGI(TAG, "http://192.168.4.1/ping");
 
     while (1)
     {
-        // =====================================================
-        // ФАЗА 1
-        // =====================================================
-        smooth_servo(FORWARD_RIGHT_TIBIA, 90, 35, 10);
-        smooth_servo(FORWARD_RIGHT_COXA, 105, 145, 10);
+        switch (current_mode)
+        {
+            case MODE_MOVE:
+                robot_move_cycle();
+                break;
+            case MODE_PING:
+                robot_ping_cycle();
+                break;
+            case MODE_IDLE:
+                robot_init_position();
+                break;
+            default:
+                vTaskDelay(pdMS_TO_TICKS(100));
+                break;
+        }
         vTaskDelay(pdMS_TO_TICKS(100));
-
-        smooth_servo(FORWARD_LEFT_TIBIA, 90, 145, 10);
-        smooth_servo(FORWARD_LEFT_COXA, 60, 20, 10);
-        vTaskDelay(pdMS_TO_TICKS(200));
-
-
-        // =====================================================
-        // ФАЗА 2
-        // =====================================================
-        smooth_servo(BACKWARD_RIGHT_TIBIA, 90, 35, 12);
-        smooth_servo(BACKWARD_RIGHT_COXA, 60, 130, 12);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        smooth_servo(BACKWARD_RIGHT_TIBIA, 35, 90, 12);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        
-        smooth_servo(BACKWARD_LEFT_TIBIA, 90, 145, 12);
-        smooth_servo(BACKWARD_LEFT_COXA, 105, 35, 12);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        smooth_servo(BACKWARD_LEFT_TIBIA, 145, 90, 12);
-        vTaskDelay(pdMS_TO_TICKS(200));
-
-
-        // =====================================================
-        // ФАЗА 3
-        // =====================================================
-        smooth_servo(FORWARD_LEFT_FEMUR, 90, 165, 10);
-        smooth_servo(FORWARD_LEFT_TIBIA, 145, 90, 10);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        smooth_servo(FORWARD_LEFT_FEMUR, 165, 90, 10);
-        vTaskDelay(pdMS_TO_TICKS(100));
-
-        smooth_servo(FORWARD_RIGHT_FEMUR, 90, 15, 10);
-        smooth_servo(FORWARD_RIGHT_TIBIA, 35, 90, 10);
-        vTaskDelay(pdMS_TO_TICKS(100));
-        smooth_servo(FORWARD_RIGHT_FEMUR, 15, 90, 10);
-        vTaskDelay(pdMS_TO_TICKS(100));
-
-        // =====================================================
-        // ФАЗА 4
-        // =====================================================
-        smooth_servo(FORWARD_RIGHT_COXA, 145, 105, 12);
-        smooth_servo(FORWARD_LEFT_COXA, 20, 60, 12);
-        smooth_servo(BACKWARD_LEFT_COXA, 35, 105, 12);
-        smooth_servo(BACKWARD_RIGHT_COXA, 130, 60, 12);
-
-        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
