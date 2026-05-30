@@ -132,6 +132,25 @@ void set_servo(uint8_t channel, int angle)
              pwm);
 }
 
+void move_leg(
+    uint8_t shin,          // голень
+    uint8_t shoulder,      // плечо
+    int neutral_shin,      // исходное положение голени
+    int lift_shin,         // угол поднятия
+    int forward_shoulder   // куда двигаем плечо
+) {
+    // 1. Поднять ногу
+    set_servo(shin, lift_shin);
+    vTaskDelay(pdMS_TO_TICKS(250));
+
+    // 2. Перенести вперед
+    set_servo(shoulder, forward_shoulder);
+    vTaskDelay(pdMS_TO_TICKS(250));
+
+    // 3. Опустить
+    set_servo(shin, neutral_shin);
+    vTaskDelay(pdMS_TO_TICKS(250));
+}
 
 // ====================== Main ======================
 
@@ -160,6 +179,13 @@ void app_main(void)
     set_servo(1, 90);
     set_servo(2, 90);
     set_servo(3, 90);
+
+    vTaskDelay(pdMS_TO_TICKS(1500));
+    // передняя правая
+    move_leg(0, 8, 90, 130, 130);
+    vTaskDelay(pdMS_TO_TICKS(500));
+    // передняя левая
+    move_leg(3, 11, 90, 50, 50);
 
     while (1) {
         vTaskDelay(pdMS_TO_TICKS(100));
