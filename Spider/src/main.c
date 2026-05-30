@@ -185,11 +185,12 @@ void app_main(void)
     while (1)
     {
         // =====================================================
-        // 1. Передняя правая — выносим вперед
+        // ФАЗА 1
+        // Передние ноги вытягиваем вперед
         // =====================================================
 
-        // поднять
-        smooth_servo(FORWARD_RIGHT_TIBIA, 90, 145, 10);
+        // поднять переднюю правую
+        smooth_servo(FORWARD_RIGHT_TIBIA, 90, 35, 10);
 
         // вынести вперед
         smooth_servo(FORWARD_RIGHT_COXA, 105, 145, 10);
@@ -197,74 +198,66 @@ void app_main(void)
         // опустить
         smooth_servo(FORWARD_RIGHT_TIBIA, 145, 90, 10);
 
-        vTaskDelay(pdMS_TO_TICKS(150));
+        vTaskDelay(pdMS_TO_TICKS(100));
 
 
-        // =====================================================
-        // 2. Корпус подтягивается
-        // задняя левая толкает
-        // =====================================================
-
-        smooth_servo(BACKWARD_LEFT_COXA, 105, 70, 10);
-
-        vTaskDelay(pdMS_TO_TICKS(150));
-
-
-        // =====================================================
-        // 3. Передняя левая — перенос вперед
-        // =====================================================
-
-        // поднять
+        // поднять переднюю левую
         smooth_servo(FORWARD_LEFT_TIBIA, 90, 145, 10);
 
-        // перенести
-        smooth_servo(FORWARD_LEFT_COXA, 60, 30, 10);
+        // вынести вперед
+        smooth_servo(FORWARD_LEFT_COXA, 60, 20, 10);
 
         // опустить
         smooth_servo(FORWARD_LEFT_TIBIA, 145, 90, 10);
 
-        vTaskDelay(pdMS_TO_TICKS(150));
+        vTaskDelay(pdMS_TO_TICKS(200));
 
 
         // =====================================================
-        // 4. Корпус подтягивается
-        // задняя правая толкает
+        // ФАЗА 2
+        // Задние ноги толкают корпус вперед
         // =====================================================
 
-        smooth_servo(BACKWARD_RIGHT_COXA, 60, 110, 10);
+        smooth_servo(BACKWARD_RIGHT_COXA, 60, 130, 12);
+        smooth_servo(BACKWARD_LEFT_COXA, 105, 40, 12);
 
-        vTaskDelay(pdMS_TO_TICKS(150));
+        vTaskDelay(pdMS_TO_TICKS(250));
 
 
         // =====================================================
-        // 5. Задняя правая — перенос вперед
+        // ФАЗА 3
+        // Подтягиваем задние ноги
         // =====================================================
 
-        // поднять
+        // задняя правая
         smooth_servo(BACKWARD_RIGHT_TIBIA, 90, 145, 10);
 
-        // перенести
-        smooth_servo(BACKWARD_RIGHT_COXA, 110, 60, 10);
+        smooth_servo(BACKWARD_RIGHT_COXA, 130, 60, 10);
 
-        // опустить
         smooth_servo(BACKWARD_RIGHT_TIBIA, 145, 90, 10);
 
-        vTaskDelay(pdMS_TO_TICKS(150));
+        vTaskDelay(pdMS_TO_TICKS(100));
 
 
-        // =====================================================
-        // 6. Задняя левая — перенос вперед
-        // =====================================================
-
-        // поднять
+        // задняя левая
         smooth_servo(BACKWARD_LEFT_TIBIA, 90, 145, 10);
 
-        // перенести
-        smooth_servo(BACKWARD_LEFT_COXA, 70, 105, 10);
+        smooth_servo(BACKWARD_LEFT_COXA, 40, 105, 10);
 
-        // опустить
         smooth_servo(BACKWARD_LEFT_TIBIA, 145, 90, 10);
 
-        vTaskDelay(pdMS_TO_TICKS(300));
+        vTaskDelay(pdMS_TO_TICKS(200));
+
+
+        // =====================================================
+        // ФАЗА 4
+        // Возвращаем передние ноги чуть назад
+        // чтобы был новый цикл
+        // =====================================================
+
+        smooth_servo(FORWARD_RIGHT_COXA, 145, 105, 12);
+        smooth_servo(FORWARD_LEFT_COXA, 20, 60, 12);
+
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
 }
