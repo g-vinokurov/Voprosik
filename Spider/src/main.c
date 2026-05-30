@@ -119,37 +119,37 @@ uint16_t angle_to_pwm(int angle)
            ((SERVO_MAX - SERVO_MIN) * angle) / 180;
 }
 
-void set_servo(uint8_t channel, int angle)
-{
+void set_servo(uint8_t channel, int angle) {
     uint16_t pwm = angle_to_pwm(angle);
-
     pca9685_set_pwm(channel, 0, pwm);
-
-    ESP_LOGI(TAG,
-             "CH %d -> angle %d -> pwm %d",
-             channel,
-             angle,
-             pwm);
+    ESP_LOGI(TAG, "CH %d -> angle %d -> pwm %d", channel, angle, pwm);
 }
 
-void move_leg(
-    uint8_t shin,          // голень
-    uint8_t shoulder,      // плечо
-    int neutral_shin,      // исходное положение голени
-    int lift_shin,         // угол поднятия
-    int forward_shoulder   // куда двигаем плечо
-) {
-    // 1. Поднять ногу
-    set_servo(shin, lift_shin);
-    vTaskDelay(pdMS_TO_TICKS(250));
+#define FORWARD_RIGHT_TIBIA 0
+#define FORWARD_RIGHT_FEMUR 4
+#define FORWARD_RIGHT_COXA 8
+#define BACKWARD_RIGHT_TIBIA 1
+#define BACKWARD_RIGHT_FEMUR 5
+#define BACKWARD_RIGHT_COXA 9
+#define BACKWARD_LEFT_TIBIA 2
+#define BACKWARD_LEFT_FEMUR 6
+#define BACKWARD_LEFT_COXA 10
+#define FORWARD_LEFT_TIBIA 3
+#define FORWARD_LEFT_FEMUR 7
+#define FORWARD_LEFT_COXA 11
 
-    // 2. Перенести вперед
-    set_servo(shoulder, forward_shoulder);
-    vTaskDelay(pdMS_TO_TICKS(250));
-
-    // 3. Опустить
-    set_servo(shin, neutral_shin);
-    vTaskDelay(pdMS_TO_TICKS(250));
+void smooth_servo(uint8_t ch, int from, int to, int step_delay) {
+    if (from < to) {
+        for (int a = from; a <= to; a += 2) {
+            set_servo(ch, a);
+            vTaskDelay(pdMS_TO_TICKS(step_delay));
+        }
+    } else {
+        for (int a = from; a >= to; a -= 2) {
+            set_servo(ch, a);
+            vTaskDelay(pdMS_TO_TICKS(step_delay));
+        }
+    }
 }
 
 // ====================== Main ======================
@@ -165,29 +165,83 @@ void app_main(void)
 
     // Начальные позиции
 
-    set_servo(8, 105);
-    set_servo(9, 60);
-    set_servo(10, 105);
-    set_servo(11, 60);
+    set_servo(FORWARD_RIGHT_COXA, 105);
+    set_servo(BACKWARD_RIGHT_COXA, 60);
+    set_servo(BACKWARD_LEFT_COXA, 105);
+    set_servo(FORWARD_LEFT_COXA, 60);
 
-    set_servo(4, 90);
-    set_servo(5, 90);
-    set_servo(6, 90);
-    set_servo(7, 90);
+    set_servo(FORWARD_RIGHT_FEMUR, 90);
+    set_servo(BACKWARD_RIGHT_FEMUR, 90);
+    set_servo(BACKWARD_LEFT_FEMUR, 90);
+    set_servo(FORWARD_LEFT_FEMUR, 90);
 
-    set_servo(0, 90);
-    set_servo(1, 90);
-    set_servo(2, 90);
-    set_servo(3, 90);
+    set_servo(FORWARD_RIGHT_TIBIA, 90);
+    set_servo(BACKWARD_RIGHT_TIBIA, 90);
+    set_servo(BACKWARD_LEFT_TIBIA, 90);
+    set_servo(FORWARD_LEFT_TIBIA, 90);
 
     vTaskDelay(pdMS_TO_TICKS(1500));
-    // передняя правая
-    move_leg(0, 8, 90, 130, 130);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    // передняя левая
-    move_leg(3, 11, 90, 50, 50);
 
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(100));
+        // передняя правая вытянута вперед
+        set_servo(FORWARD_RIGHT_TIBIA, 145);
+        set_servo(FORWARD_RIGHT_FEMUR, 145);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // передняя левая отодвинута назад
+        set_servo(FORWARD_LEFT_TIBIA, 165);
+        set_servo(FORWARD_LEFT_COXA, 35);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        set_servo(FORWARD_LEFT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // задняя правая отодвинута назад
+        set_servo(BACKWARD_RIGHT_TIBIA, 165);
+        set_servo(BACKWARD_RIGHT_COXA, 145);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        set_servo(BACKWARD_RIGHT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // задняя левая отталкивается
+        set_servo(BACKWARD_LEFT_FEMUR, 145);
+        set_servo(BACKWARD_LEFT_TIBIA, 145);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // пододвигаем заднюю правую
+        set_servo(BACKWARD_RIGHT_TIBIA, 20);
+        set_servo(BACKWARD_RIGHT_COXA, 60);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        set_servo(BACKWARD_RIGHT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // пододвигаем переднюю левую
+        set_servo(FORWARD_LEFT_TIBIA, 20);
+        set_servo(FORWARD_LEFT_COXA, 60);
+        vTaskDelay(pdMS_TO_TICKS(200));
+        set_servo(FORWARD_LEFT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // пододвигаем заднюю левую
+        set_servo(BACKWARD_LEFT_FEMUR, 90);
+        set_servo(BACKWARD_LEFT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+
+        // подгибаем переднюю правую
+        set_servo(FORWARD_RIGHT_FEMUR, 90);
+        set_servo(FORWARD_RIGHT_TIBIA, 90);
+        vTaskDelay(pdMS_TO_TICKS(250));
+    
+
+        // vTaskDelay(pdMS_TO_TICKS(250));
+        // set_servo(FORWARD_RIGHT_TIBIA, 90);
+        // set_servo(BACKWARD_RIGHT_TIBIA, 20);
+        // set_servo(BACKWARD_LEFT_TIBIA, 90);
+        // set_servo(FORWARD_LEFT_TIBIA, 20);
+        
+        // vTaskDelay(pdMS_TO_TICKS(250));
+        // set_servo(FORWARD_RIGHT_TIBIA, 20);
+        // set_servo(BACKWARD_RIGHT_TIBIA, 90);
+        // set_servo(BACKWARD_LEFT_TIBIA, 20);
+        // set_servo(FORWARD_LEFT_TIBIA, 90);
     }
 }
