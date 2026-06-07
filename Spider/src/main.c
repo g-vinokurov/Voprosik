@@ -73,6 +73,8 @@ static const char *TAG = "SPIDER";
 typedef enum {
     MODE_IDLE,
     MODE_MOVE,
+    MODE_FAST_MOVE,
+    MODE_TEST,
     MODE_PING
 } robot_mode_t;
 
@@ -92,16 +94,8 @@ esp_err_t i2c_master_init(void)
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
         .master.clk_speed = I2C_MASTER_FREQ_HZ,
     };
-
     ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &conf));
-
-    return i2c_driver_install(
-        I2C_MASTER_NUM,
-        conf.mode,
-        0,
-        0,
-        0
-    );
+    return i2c_driver_install(I2C_MASTER_NUM, conf.mode, 0, 0, 0);
 }
 
 // =====================================================
@@ -274,6 +268,88 @@ void robot_move_cycle()
 }
 
 // =====================================================
+// FAST MOVE STEP
+// =====================================================
+
+void robot_fast_move_cycle()
+{
+    smooth_servo(FORWARD_RIGHT_TIBIA, 90, 35, 5);
+    smooth_servo(FORWARD_RIGHT_COXA, 105, 145, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_LEFT_TIBIA, 90, 145, 5);
+    smooth_servo(FORWARD_LEFT_COXA, 60, 20, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 90, 35, 5);
+    smooth_servo(BACKWARD_RIGHT_COXA, 60, 130, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 35, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_LEFT_TIBIA, 90, 145, 5);
+    smooth_servo(BACKWARD_LEFT_COXA, 105, 35, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_LEFT_TIBIA, 145, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 165, 5);
+    smooth_servo(FORWARD_LEFT_TIBIA, 145, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_LEFT_FEMUR, 165, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 15, 5);
+    smooth_servo(FORWARD_RIGHT_TIBIA, 35, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_RIGHT_FEMUR, 15, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_COXA, 145, 105, 5);
+    smooth_servo(FORWARD_LEFT_COXA, 20, 60, 5);
+    smooth_servo(BACKWARD_LEFT_COXA, 35, 105, 5);
+    smooth_servo(BACKWARD_RIGHT_COXA, 130, 60, 5);
+}
+
+// =====================================================
+// TEST
+// =====================================================
+
+void robot_test_cycle()
+{
+    smooth_servo(FORWARD_RIGHT_COXA, 105, 75, 5);
+    smooth_servo(BACKWARD_RIGHT_COXA, 60, 30, 5);
+    smooth_servo(BACKWARD_LEFT_COXA, 105, 135, 5);
+    smooth_servo(FORWARD_LEFT_COXA, 60, 90, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 165, 5);
+    smooth_servo(FORWARD_LEFT_COXA, 90, 60, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_LEFT_FEMUR, 165, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_LEFT_FEMUR, 90, 15, 5);
+    smooth_servo(BACKWARD_LEFT_COXA, 135, 105, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_LEFT_FEMUR, 15, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 15, 5);
+    smooth_servo(FORWARD_RIGHT_COXA, 75, 105, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(FORWARD_RIGHT_FEMUR, 15, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 90, 165, 5);
+    smooth_servo(BACKWARD_RIGHT_COXA, 30, 60, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 165, 90, 5);
+    vTaskDelay(pdMS_TO_TICKS(100));
+}
+
+// =====================================================
 // PING ANIMATION
 // =====================================================
 
@@ -312,10 +388,24 @@ static esp_err_t move_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t fast_move_handler(httpd_req_t *req)
+{
+    current_mode = MODE_FAST_MOVE;
+    httpd_resp_send(req, "FAST MOVE MODE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
 static esp_err_t init_handler(httpd_req_t *req)
 {
     current_mode = MODE_IDLE;
     httpd_resp_send(req, "INIT DONE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t test_handler(httpd_req_t *req)
+{
+    current_mode = MODE_TEST;
+    httpd_resp_send(req, "TEST DONE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -339,6 +429,13 @@ httpd_handle_t start_webserver(void)
             .user_ctx = NULL
         };
 
+        httpd_uri_t fast_move_uri = {
+            .uri = "/fast-move",
+            .method = HTTP_GET,
+            .handler = fast_move_handler,
+            .user_ctx = NULL
+        };
+
         httpd_uri_t init_uri = {
             .uri = "/init",
             .method = HTTP_GET,
@@ -346,9 +443,18 @@ httpd_handle_t start_webserver(void)
             .user_ctx = NULL
         };
 
+        httpd_uri_t test_uri = {
+            .uri = "/test",
+            .method = HTTP_GET,
+            .handler = test_handler,
+            .user_ctx = NULL
+        };
+
         httpd_register_uri_handler(server, &ping_uri);
         httpd_register_uri_handler(server, &move_uri);
+        httpd_register_uri_handler(server, &fast_move_uri);
         httpd_register_uri_handler(server, &init_uri);
+        httpd_register_uri_handler(server, &test_uri);
 
         ESP_LOGI(TAG, "HTTP server started");
     }
@@ -405,22 +511,12 @@ void app_main(void)
     }
 
     ESP_ERROR_CHECK(ret);
-
     ESP_ERROR_CHECK(i2c_master_init());
 
     pca9685_init();
-
     robot_init_position();
-
     wifi_init_softap();
-
     start_webserver();
-
-    ESP_LOGI(TAG, "READY");
-    ESP_LOGI(TAG, "Open:");
-    ESP_LOGI(TAG, "http://192.168.4.1/move");
-    ESP_LOGI(TAG, "http://192.168.4.1/init");
-    ESP_LOGI(TAG, "http://192.168.4.1/ping");
 
     while (1)
     {
@@ -429,11 +525,17 @@ void app_main(void)
             case MODE_MOVE:
                 robot_move_cycle();
                 break;
+            case MODE_FAST_MOVE:
+                robot_fast_move_cycle();
+                break;
             case MODE_PING:
                 robot_ping_cycle();
                 break;
             case MODE_IDLE:
                 robot_init_position();
+                break;
+            case MODE_TEST:
+                robot_test_cycle();
                 break;
             default:
                 vTaskDelay(pdMS_TO_TICKS(100));
