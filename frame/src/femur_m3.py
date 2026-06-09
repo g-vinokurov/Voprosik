@@ -3,7 +3,7 @@ from build123d import *
 from ocp_vscode import show
 
 with BuildPart() as part:
-    length = 60
+    length = 66
     width  = 100
     height = 20
     Box(length, width, height)
@@ -14,7 +14,7 @@ with BuildPart() as part:
     z = 0
     with BuildPart(Location((x, y, z))):
         radius = 10
-        height = 60
+        height = 66
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
     
@@ -23,12 +23,12 @@ with BuildPart() as part:
     z = 0
     with BuildPart(Location((x, y, z))):
         radius = 10
-        height = 60
+        height = 66
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
     
     # Вырез внутренности
-    x = 0
+    x = -2
     y = 0
     z = 0
     with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
@@ -52,7 +52,7 @@ with BuildPart() as part:
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
             radius = 1.5
-            height = 60
+            height = 66
             align  = (Align.CENTER, Align.CENTER, Align.CENTER)
             Cylinder(radius, height, align=align, rotation=(0, 90, 0))
 
@@ -62,7 +62,7 @@ with BuildPart() as part:
     z = 0
     with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
         radius = 3.5
-        height = 60
+        height = 66
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
     
@@ -71,17 +71,17 @@ with BuildPart() as part:
     z = 0
     with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
         radius = 3.5
-        height = 60
+        height = 66
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
 
     # Перемычка
-    x = 0
+    x = -2
     y = 0
     z = 0
     with BuildPart(Location((x, y, z))):
         length = 50
-        width  = 6
+        width  = 8
         height = 20
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -89,10 +89,10 @@ with BuildPart() as part:
     # Изгиб
     x = 0
     y = 0
-    z = 100
+    z = 101
     with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
         radius = 100
-        height = 60
+        height = 66
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Cylinder(radius, height, align=align, rotation=(0, 90, 0))
 
