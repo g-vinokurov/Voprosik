@@ -7,7 +7,7 @@ pygame.init()
 
 # Константы
 WINDOW_WIDTH = 400
-WINDOW_HEIGHT = 300
+WINDOW_HEIGHT = 500
 BUTTON_WIDTH = 200
 BUTTON_HEIGHT = 50
 BUTTON_MARGIN = 20
@@ -23,6 +23,8 @@ RED = (255, 50, 50)
 LIGHT_BLUE = (173, 216, 230)
 LIGHT_GREEN = (144, 238, 144)
 LIGHT_RED = (255, 182, 193)
+DARK_RED = (0xd3, 0, 0)
+
 
 class Button:
     def __init__(self, x, y, width, height, text, color, hover_color, text_color=WHITE):
@@ -95,6 +97,24 @@ def main():
             "Move",
             RED,
             LIGHT_RED
+        ),
+        'Fast-Move': Button(
+            WINDOW_WIDTH // 2 - BUTTON_WIDTH // 2,
+            260,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            "Fast Move",
+            DARK_RED,
+            RED
+        ),
+        'Test': Button(
+            WINDOW_WIDTH // 2 - BUTTON_WIDTH // 2,
+            330,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT,
+            "Test",
+            BLACK,
+            GRAY
         )
     }
 
