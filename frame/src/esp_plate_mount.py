@@ -11,17 +11,38 @@ unit_height         = 9.6 # lego brick height
 
 with BuildPart() as part:
     # База
-    length = unit_size * 9
+    length = unit_size * 8
     width  = unit_size * 8
     height = unit_height
     Box(length, width, height)
 
-    x_pos = -unit_size * 4
-    y_pos = 0
-    z_pos = 0
-    with BuildPart(Location((x_pos, y_pos, z_pos)), mode=Mode.SUBTRACT):
-        length = unit_size * 1
-        width  = unit_size * 8
+    # Вырезы
+    x = 19
+    y = 32 - 3
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 26
+        width  = 6
+        height = unit_height
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    x = 19
+    y = -32 + 3
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 26
+        width  = 6
+        height = unit_height
+        align  = (Align.CENTER, Align.CENTER, Align.CENTER)
+        Box(length, width, height)
+    
+    x = -22
+    y = 0
+    z = 0
+    with BuildPart(Location((x, y, z)), mode=Mode.SUBTRACT):
+        length = 20
+        width  = 64
         height = unit_height
         align  = (Align.CENTER, Align.CENTER, Align.CENTER)
         Box(length, width, height)
@@ -30,7 +51,7 @@ with BuildPart() as part:
     points = [
         # Arduino Uno
         (-36 + 4 + 32, 27.5, 0),
-        (-36 + 5 + 31, -20.9, 0),
+        (-36 + 4 + 31, -20.9, 0),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
@@ -43,7 +64,7 @@ with BuildPart() as part:
     z_pos = unit_height / 2 - 1.5
     points = [
         (-36 + 4 + 32, 27.5, z_pos),
-        (-36 + 5 + 31, -20.9, z_pos),
+        (-36 + 4 + 31, -20.9, z_pos),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
@@ -56,8 +77,8 @@ with BuildPart() as part:
     # Отверстия под крепежные винты (2 mm)
     points = [
         # ESP Plate (50 mm x 70 mm)
-        (33,  23, 0),
-        (33,  -23, 0),
+        (29,  23, 0),
+        (29,  -23, 0),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
@@ -69,8 +90,8 @@ with BuildPart() as part:
     # Утоплялки под крепежные винты
     z_pos = -unit_height / 2 + 1
     points = [
-        (33,  23, z_pos),
-        (33,  -23, z_pos),
+        (29,  23, z_pos),
+        (29,  -23, z_pos),
     ]
     for point in points:
         with BuildPart(Location(point), mode=Mode.SUBTRACT):
