@@ -504,6 +504,7 @@ static esp_err_t sleep_handler(httpd_req_t *req) {
 
 static esp_err_t wake_up_handler(httpd_req_t *req) {
     if (current_mode != MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
         httpd_resp_send(req, "WAKE UP FAILED", HTTPD_RESP_USE_STRLEN);
         return ESP_FAIL;    
     }
