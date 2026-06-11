@@ -75,7 +75,10 @@ typedef enum {
     MODE_MOVE,
     MODE_FAST_MOVE,
     MODE_TEST,
-    MODE_DANCE
+    MODE_DANCE,
+    MODE_PREPARE_TO_SLEEP,
+    MODE_SLEEPING,
+    MODE_WAKE_UP
 } robot_mode_t;
 
 volatile robot_mode_t current_mode = MODE_INIT;
@@ -371,6 +374,70 @@ void robot_dance_cycle()
 }
 
 // =====================================================
+// PREPARE TO SLEEP
+// =====================================================
+
+void robot_prepare_to_sleep() {
+    robot_stay_position();
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 5, 5);
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 175, 5);
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 90, 175, 5);
+    smooth_servo(BACKWARD_LEFT_FEMUR, 90, 5, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_TIBIA, 90, 160, 5);
+    smooth_servo(FORWARD_LEFT_TIBIA, 90, 20, 5);
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 90, 20, 5);
+    smooth_servo(BACKWARD_LEFT_TIBIA, 90, 160, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 5, 90, 5);
+    smooth_servo(FORWARD_LEFT_FEMUR, 175, 90, 5);
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 175, 90, 5);
+    smooth_servo(BACKWARD_LEFT_FEMUR, 5, 90, 5);
+
+    current_mode = MODE_SLEEPING;
+}
+
+// =====================================================
+// WAKE UP
+// =====================================================
+
+void robot_wake_up() {
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 5, 5);
+    smooth_servo(FORWARD_RIGHT_TIBIA, 160, 90, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 90, 175, 5);
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 20, 90, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 175, 5);
+    smooth_servo(FORWARD_LEFT_TIBIA, 20, 90, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(BACKWARD_LEFT_FEMUR, 90, 5, 5);
+    smooth_servo(BACKWARD_LEFT_TIBIA, 160, 90, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 5, 90, 5);
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 175, 90, 5);
+    smooth_servo(FORWARD_LEFT_FEMUR, 175, 90, 5);
+    smooth_servo(BACKWARD_LEFT_FEMUR, 5, 90, 5);
+
+    current_mode = MODE_INIT;
+}
+
+// =====================================================
 // HTTP
 // =====================================================
 
@@ -406,6 +473,22 @@ static esp_err_t stay_handler(httpd_req_t *req) {
 static esp_err_t test_handler(httpd_req_t *req) {
     current_mode = MODE_TEST;
     httpd_resp_send(req, "TEST DONE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t sleep_handler(httpd_req_t *req) {
+    current_mode = MODE_PREPARE_TO_SLEEP;
+    httpd_resp_send(req, "PREPARE TO SLEEP", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t wake_up_handler(httpd_req_t *req) {
+    if (current_mode != MODE_SLEEPING) {
+        httpd_resp_send(req, "WAKE UP FAILED", HTTPD_RESP_USE_STRLEN);
+        return ESP_ERR_INVALID_STATE;    
+    }
+    current_mode = MODE_WAKE_UP;
+    httpd_resp_send(req, "WAKE UP", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -456,6 +539,20 @@ httpd_handle_t start_webserver(void)
             .handler = test_handler,
             .user_ctx = NULL
         };
+        
+        httpd_uri_t sleep_uri = {
+            .uri = "/sleep",
+            .method = HTTP_GET,
+            .handler = sleep_handler,
+            .user_ctx = NULL
+        };
+
+        httpd_uri_t wake_up_uri = {
+            .uri = "/wake-up",
+            .method = HTTP_GET,
+            .handler = wake_up_handler,
+            .user_ctx = NULL
+        };
 
         httpd_register_uri_handler(server, &ping_uri);
         httpd_register_uri_handler(server, &dance_uri);
@@ -463,6 +560,8 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &fast_move_uri);
         httpd_register_uri_handler(server, &stay_uri);
         httpd_register_uri_handler(server, &test_uri);
+        httpd_register_uri_handler(server, &sleep_uri);
+        httpd_register_uri_handler(server, &wake_up_uri);
 
         ESP_LOGI(TAG, "HTTP server started");
     }
@@ -545,6 +644,13 @@ void app_main(void)
             case MODE_TEST:
                 robot_test_cycle();
                 break;
+            case MODE_PREPARE_TO_SLEEP:
+                robot_prepare_to_sleep();
+                break;
+            case MODE_WAKE_UP:
+                robot_wake_up();
+                break;
+            case MODE_SLEEPING:
             default:
                 vTaskDelay(pdMS_TO_TICKS(100));
                 break;
