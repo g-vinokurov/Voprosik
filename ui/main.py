@@ -206,10 +206,10 @@ def main():
             center_y   = WINDOW_H / 4 + 40 + 30 + 20,
             width      = WINDOW_W / 6 - 5,
             height     = 60,
-            text       = "Stop!",
+            text       = "Stay!",
             font       = "action",
             font_color = WHITE,
-            on_click   = lambda: do_action("init", Animation("stop", WINDOW_W / 4 * 3, WINDOW_H / 2))
+            on_click   = lambda: do_action("stay", Animation("stay", WINDOW_W / 4 * 3, WINDOW_H / 2))
         ),
         ActionButton(
             center_x   = WINDOW_W / 4 + WINDOW_W / 12,
@@ -249,7 +249,7 @@ def main():
             text       = "Dance!",
             font       = "action",
             font_color = WHITE,
-            on_click   = lambda: do_action("ping", Animation("dance", WINDOW_W / 4 * 3, WINDOW_H / 2, frame_rate=0.5))
+            on_click   = lambda: do_action("dance", Animation("dance", WINDOW_W / 4 * 3, WINDOW_H / 2, frame_rate=0.5))
         ),
         ActionButton(
             center_x   = WINDOW_W / 4,
