@@ -447,22 +447,32 @@ static esp_err_t ping_handler(httpd_req_t *req) {
 }
 
 static esp_err_t dance_handler(httpd_req_t *req) {
+    if (current_mode == MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
+        httpd_resp_send(req, "DANCE FAILED", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
     current_mode = MODE_DANCE;
     httpd_resp_send(req, "DANCE MODE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
 static esp_err_t move_handler(httpd_req_t *req) {
+    if (current_mode == MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
+        httpd_resp_send(req, "MOVE FAILED", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
     current_mode = MODE_MOVE;
     httpd_resp_send(req, "MOVE MODE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-static esp_err_t fast_move_handler(httpd_req_t *req) {
-    current_mode = MODE_FAST_MOVE;
-    httpd_resp_send(req, "FAST MOVE MODE", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
-}
+// static esp_err_t fast_move_handler(httpd_req_t *req) {
+//     current_mode = MODE_FAST_MOVE;
+//     httpd_resp_send(req, "FAST MOVE MODE", HTTPD_RESP_USE_STRLEN);
+//     return ESP_OK;
+// }
 
 static esp_err_t stay_handler(httpd_req_t *req) {
     current_mode = MODE_INIT;
@@ -471,12 +481,22 @@ static esp_err_t stay_handler(httpd_req_t *req) {
 }
 
 static esp_err_t test_handler(httpd_req_t *req) {
+    if (current_mode == MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
+        httpd_resp_send(req, "ZOMBIE FAILED", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
     current_mode = MODE_TEST;
     httpd_resp_send(req, "TEST DONE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
 static esp_err_t sleep_handler(httpd_req_t *req) {
+    if (current_mode == MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
+        httpd_resp_send(req, "SLEEP AGAIN?!", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;
+    }
     current_mode = MODE_PREPARE_TO_SLEEP;
     httpd_resp_send(req, "PREPARE TO SLEEP", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
@@ -485,7 +505,7 @@ static esp_err_t sleep_handler(httpd_req_t *req) {
 static esp_err_t wake_up_handler(httpd_req_t *req) {
     if (current_mode != MODE_SLEEPING) {
         httpd_resp_send(req, "WAKE UP FAILED", HTTPD_RESP_USE_STRLEN);
-        return ESP_ERR_INVALID_STATE;    
+        return ESP_FAIL;    
     }
     current_mode = MODE_WAKE_UP;
     httpd_resp_send(req, "WAKE UP", HTTPD_RESP_USE_STRLEN);
@@ -519,12 +539,12 @@ httpd_handle_t start_webserver(void)
             .user_ctx = NULL
         };
 
-        httpd_uri_t fast_move_uri = {
-            .uri = "/fast-move",
-            .method = HTTP_GET,
-            .handler = fast_move_handler,
-            .user_ctx = NULL
-        };
+        // httpd_uri_t fast_move_uri = {
+        //     .uri = "/fast-move",
+        //     .method = HTTP_GET,
+        //     .handler = fast_move_handler,
+        //     .user_ctx = NULL
+        // };
 
         httpd_uri_t stay_uri = {
             .uri = "/stay",
@@ -557,7 +577,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &ping_uri);
         httpd_register_uri_handler(server, &dance_uri);
         httpd_register_uri_handler(server, &move_uri);
-        httpd_register_uri_handler(server, &fast_move_uri);
+        // httpd_register_uri_handler(server, &fast_move_uri);
         httpd_register_uri_handler(server, &stay_uri);
         httpd_register_uri_handler(server, &test_uri);
         httpd_register_uri_handler(server, &sleep_uri);
