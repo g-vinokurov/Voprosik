@@ -73,12 +73,13 @@ static const char *TAG = "SPIDER";
 typedef enum {
     MODE_INIT,
     MODE_MOVE,
-    MODE_FAST_MOVE,
+    MODE_GO_TO_MAMA,
     MODE_TEST,
     MODE_DANCE,
     MODE_PREPARE_TO_SLEEP,
     MODE_SLEEPING,
-    MODE_WAKE_UP
+    MODE_WAKE_UP,
+    MODE_BOX
 } robot_mode_t;
 
 volatile robot_mode_t current_mode = MODE_INIT;
@@ -380,7 +381,7 @@ void robot_dance_cycle()
 void robot_prepare_to_sleep() {
     robot_stay_position();
 
-    vTaskDelay(pdMS_TO_TICKS(100));
+    vTaskDelay(pdMS_TO_TICKS(200));
 
     smooth_servo(FORWARD_RIGHT_FEMUR, 90, 5, 5);
     smooth_servo(FORWARD_LEFT_FEMUR, 90, 175, 5);
@@ -438,6 +439,35 @@ void robot_wake_up() {
 }
 
 // =====================================================
+// GO TO MAMA
+// =====================================================
+
+void robot_go_to_mama() {
+    robot_prepare_to_sleep();
+
+    smooth_servo(FORWARD_RIGHT_FEMUR, 90, 5, 5);
+    smooth_servo(FORWARD_LEFT_FEMUR, 90, 175, 5);
+    smooth_servo(BACKWARD_RIGHT_FEMUR, 90, 175, 5);
+    smooth_servo(BACKWARD_LEFT_FEMUR, 90, 5, 5);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    set_servo(FORWARD_RIGHT_COXA, 160);
+    set_servo(FORWARD_LEFT_COXA, 5);
+    set_servo(BACKWARD_RIGHT_COXA, 5);
+    set_servo(BACKWARD_LEFT_COXA, 160);
+
+    vTaskDelay(pdMS_TO_TICKS(100));
+
+    smooth_servo(FORWARD_RIGHT_TIBIA, 160, 20, 5);
+    smooth_servo(FORWARD_LEFT_TIBIA, 20, 160, 5);
+    smooth_servo(BACKWARD_RIGHT_TIBIA, 20, 160, 5);
+    smooth_servo(BACKWARD_LEFT_TIBIA, 160, 20, 5);
+
+    current_mode = MODE_BOX;
+}
+
+// =====================================================
 // HTTP
 // =====================================================
 
@@ -468,11 +498,16 @@ static esp_err_t move_handler(httpd_req_t *req) {
     return ESP_OK;
 }
 
-// static esp_err_t fast_move_handler(httpd_req_t *req) {
-//     current_mode = MODE_FAST_MOVE;
-//     httpd_resp_send(req, "FAST MOVE MODE", HTTPD_RESP_USE_STRLEN);
-//     return ESP_OK;
-// }
+static esp_err_t go_to_mama_handler(httpd_req_t *req) {
+    if (current_mode == MODE_SLEEPING) {
+        httpd_resp_set_status(req, HTTPD_400);
+        httpd_resp_send(req, "GO TO MAMA FAILED", HTTPD_RESP_USE_STRLEN);
+        return ESP_FAIL;    
+    }
+    current_mode = MODE_GO_TO_MAMA;
+    httpd_resp_send(req, "MODE GO TO MAMA", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
 
 static esp_err_t stay_handler(httpd_req_t *req) {
     current_mode = MODE_INIT;
@@ -540,12 +575,12 @@ httpd_handle_t start_webserver(void)
             .user_ctx = NULL
         };
 
-        // httpd_uri_t fast_move_uri = {
-        //     .uri = "/fast-move",
-        //     .method = HTTP_GET,
-        //     .handler = fast_move_handler,
-        //     .user_ctx = NULL
-        // };
+        httpd_uri_t go_to_mama_uri = {
+            .uri = "/go-to-mama",
+            .method = HTTP_GET,
+            .handler = go_to_mama_handler,
+            .user_ctx = NULL
+        };
 
         httpd_uri_t stay_uri = {
             .uri = "/stay",
@@ -578,7 +613,7 @@ httpd_handle_t start_webserver(void)
         httpd_register_uri_handler(server, &ping_uri);
         httpd_register_uri_handler(server, &dance_uri);
         httpd_register_uri_handler(server, &move_uri);
-        // httpd_register_uri_handler(server, &fast_move_uri);
+        httpd_register_uri_handler(server, &go_to_mama_uri);
         httpd_register_uri_handler(server, &stay_uri);
         httpd_register_uri_handler(server, &test_uri);
         httpd_register_uri_handler(server, &sleep_uri);
@@ -653,8 +688,8 @@ void app_main(void)
             case MODE_MOVE:
                 robot_move_cycle();
                 break;
-            case MODE_FAST_MOVE:
-                robot_fast_move_cycle();
+            case MODE_GO_TO_MAMA:
+                robot_go_to_mama();
                 break;
             case MODE_DANCE:
                 robot_dance_cycle();
@@ -672,6 +707,7 @@ void app_main(void)
                 robot_wake_up();
                 break;
             case MODE_SLEEPING:
+            case MODE_BOX:
             default:
                 vTaskDelay(pdMS_TO_TICKS(100));
                 break;
