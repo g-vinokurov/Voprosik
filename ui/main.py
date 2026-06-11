@@ -242,7 +242,7 @@ def main():
             on_click   = lambda: do_action("test", Animation("zombie", WINDOW_W / 4 * 3, WINDOW_H / 2, frame_rate=0.75))
         ),
         ActionButton(
-            center_x   = WINDOW_W / 4,
+            center_x   = WINDOW_W / 4 - WINDOW_W / 12,
             center_y   = WINDOW_H / 4 + 40 + 60 + 60 + 30 + 40,
             width      = WINDOW_W / 6 - 5,
             height     = 60,
@@ -252,14 +252,24 @@ def main():
             on_click   = lambda: do_action("dance", Animation("dance", WINDOW_W / 4 * 3, WINDOW_H / 2, frame_rate=0.5))
         ),
         ActionButton(
-            center_x   = WINDOW_W / 4,
-            center_y   = WINDOW_H / 4 + 40 + 60 + 60 + 60 + 30 + 50,
+            center_x   = WINDOW_W / 4 + WINDOW_W / 12,
+            center_y   = WINDOW_H / 4 + 40 + 60 + 60 + 30 + 40,
             width      = WINDOW_W / 6 - 5,
             height     = 60,
             text       = "Sleep...",
             font       = "action",
             font_color = WHITE,
             on_click   = lambda: do_action("sleep", Animation("sleep", WINDOW_W / 4 * 3, WINDOW_H / 2))
+        ),
+        ActionButton(
+            center_x   = WINDOW_W / 4,
+            center_y   = WINDOW_H / 4 + 40 + 60 + 60 + 60 + 30 + 50,
+            width      = WINDOW_W / 4,
+            height     = 60,
+            text       = "Go to Mama:)",
+            font       = "action",
+            font_color = WHITE,
+            on_click   = lambda: do_action("go-to-mama", Animation("go-to-mama", WINDOW_W / 4 * 3, WINDOW_H / 2))
         ),
     ]
 
