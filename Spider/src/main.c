@@ -71,14 +71,14 @@ static const char *TAG = "SPIDER";
 // =====================================================
 
 typedef enum {
-    MODE_IDLE,
+    MODE_INIT,
     MODE_MOVE,
     MODE_FAST_MOVE,
     MODE_TEST,
-    MODE_PING
+    MODE_DANCE
 } robot_mode_t;
 
-volatile robot_mode_t current_mode = MODE_IDLE;
+volatile robot_mode_t current_mode = MODE_INIT;
 
 // =====================================================
 // I2C
@@ -199,10 +199,10 @@ void smooth_servo(uint8_t ch, int from, int to, int step_delay)
 }
 
 // =====================================================
-// INIT POSITION
+// STAY POSITION
 // =====================================================
 
-void robot_init_position()
+void robot_stay_position()
 {
     set_servo(FORWARD_RIGHT_COXA, 105);
     set_servo(BACKWARD_RIGHT_COXA, 60);
@@ -219,7 +219,7 @@ void robot_init_position()
     set_servo(BACKWARD_LEFT_TIBIA, 90);
     set_servo(FORWARD_LEFT_TIBIA, 90);
 
-    ESP_LOGI(TAG, "Robot init position");
+    ESP_LOGI(TAG, "Robot stay position");
 }
 
 // =====================================================
@@ -350,10 +350,10 @@ void robot_test_cycle()
 }
 
 // =====================================================
-// PING ANIMATION
+// DANCE ANIMATION
 // =====================================================
 
-void robot_ping_cycle()
+void robot_dance_cycle()
 {
     set_servo(FORWARD_RIGHT_TIBIA, 90);
     set_servo(BACKWARD_RIGHT_TIBIA, 20);
@@ -374,36 +374,36 @@ void robot_ping_cycle()
 // HTTP
 // =====================================================
 
-static esp_err_t ping_handler(httpd_req_t *req)
-{
-    current_mode = MODE_PING;
-    httpd_resp_send(req, "PING MODE", HTTPD_RESP_USE_STRLEN);
+static esp_err_t ping_handler(httpd_req_t *req) {
+    httpd_resp_send(req, "PING", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-static esp_err_t move_handler(httpd_req_t *req)
-{
+static esp_err_t dance_handler(httpd_req_t *req) {
+    current_mode = MODE_DANCE;
+    httpd_resp_send(req, "DANCE MODE", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+static esp_err_t move_handler(httpd_req_t *req) {
     current_mode = MODE_MOVE;
     httpd_resp_send(req, "MOVE MODE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-static esp_err_t fast_move_handler(httpd_req_t *req)
-{
+static esp_err_t fast_move_handler(httpd_req_t *req) {
     current_mode = MODE_FAST_MOVE;
     httpd_resp_send(req, "FAST MOVE MODE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-static esp_err_t init_handler(httpd_req_t *req)
-{
-    current_mode = MODE_IDLE;
-    httpd_resp_send(req, "INIT DONE", HTTPD_RESP_USE_STRLEN);
+static esp_err_t stay_handler(httpd_req_t *req) {
+    current_mode = MODE_INIT;
+    httpd_resp_send(req, "STAY", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
-static esp_err_t test_handler(httpd_req_t *req)
-{
+static esp_err_t test_handler(httpd_req_t *req) {
     current_mode = MODE_TEST;
     httpd_resp_send(req, "TEST DONE", HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
@@ -416,9 +416,16 @@ httpd_handle_t start_webserver(void)
     if (httpd_start(&server, &config) == ESP_OK)
     {
         httpd_uri_t ping_uri = {
-            .uri = "/ping",
+            .uri = "/",
             .method = HTTP_GET,
             .handler = ping_handler,
+            .user_ctx = NULL
+        };
+
+        httpd_uri_t dance_uri = {
+            .uri = "/dance",
+            .method = HTTP_GET,
+            .handler = dance_handler,
             .user_ctx = NULL
         };
 
@@ -436,10 +443,10 @@ httpd_handle_t start_webserver(void)
             .user_ctx = NULL
         };
 
-        httpd_uri_t init_uri = {
-            .uri = "/init",
+        httpd_uri_t stay_uri = {
+            .uri = "/stay",
             .method = HTTP_GET,
-            .handler = init_handler,
+            .handler = stay_handler,
             .user_ctx = NULL
         };
 
@@ -451,9 +458,10 @@ httpd_handle_t start_webserver(void)
         };
 
         httpd_register_uri_handler(server, &ping_uri);
+        httpd_register_uri_handler(server, &dance_uri);
         httpd_register_uri_handler(server, &move_uri);
         httpd_register_uri_handler(server, &fast_move_uri);
-        httpd_register_uri_handler(server, &init_uri);
+        httpd_register_uri_handler(server, &stay_uri);
         httpd_register_uri_handler(server, &test_uri);
 
         ESP_LOGI(TAG, "HTTP server started");
@@ -514,7 +522,7 @@ void app_main(void)
     ESP_ERROR_CHECK(i2c_master_init());
 
     pca9685_init();
-    robot_init_position();
+    robot_stay_position();
     wifi_init_softap();
     start_webserver();
 
@@ -528,11 +536,11 @@ void app_main(void)
             case MODE_FAST_MOVE:
                 robot_fast_move_cycle();
                 break;
-            case MODE_PING:
-                robot_ping_cycle();
+            case MODE_DANCE:
+                robot_dance_cycle();
                 break;
-            case MODE_IDLE:
-                robot_init_position();
+            case MODE_INIT:
+                robot_stay_position();
                 break;
             case MODE_TEST:
                 robot_test_cycle();
